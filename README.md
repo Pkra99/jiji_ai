@@ -163,6 +163,21 @@ Health check endpoint.
 - ✅ No secrets in code (env vars only)
 - ✅ Input validation & sanitization
 
+### How Auth & RLS Work
+
+**Authentication Flow:**
+1. Frontend obtains JWT token from Supabase Auth
+2. Token is passed in `Authorization: Bearer <token>` header
+3. Backend creates authenticated Supabase client with the token
+4. All database queries respect the user's identity
+
+**Row Level Security (RLS):**
+- `profiles`: Users can only read/update their own profile
+- `queries`: Users can only view/insert their own query history
+- `resources`: All authenticated users can view (public learning content)
+
+The backend uses `service_role` key for resource fetching to bypass RLS (admin access), while user-specific operations use the authenticated client.
+
 ---
 
 ## Project Structure
@@ -185,3 +200,8 @@ src/
 
 ---
 
+## Future Improvements
+
+With more time, I would implement:
+
+**Real AI Integration** - Replace mocked responses with actual LLM integration (OpenAI/Gemini API) to generate contextual answers based on the retrieved resources, enabling true RAG (Retrieval-Augmented Generation) functionality.
