@@ -10,6 +10,12 @@ Learn with Jiji is an AI-driven learning companion that personalizes how profess
 
 ---
 
+## Demo
+
+[▶️ Watch API Demo Video](https://drive.google.com/file/d/19esPAs3WpHN3QRYQEXj0kuP_dLbneVQ6/view?usp=sharing)
+
+---
+
 ## Tech Stack
 
 | Component | Technology |
