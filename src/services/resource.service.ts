@@ -1,10 +1,13 @@
-import { supabase } from '../config/supabase';
+import { getServiceClient } from '../config/supabase';
 import { Resource, ResourceResponse } from '../types';
 
 export const searchResources = async (query: string): Promise<ResourceResponse[]> => {
   console.log('[Resource Service] Searching for:', query);
 
-  // get all resources and filter
+  // Get service client inside function to ensure env vars are loaded
+  const supabase = getServiceClient();
+
+  // Get all resources
   const { data, error } = await supabase
     .from('resources')
     .select('id, title, type, public_url, tags, description');
@@ -21,7 +24,7 @@ export const searchResources = async (query: string): Promise<ResourceResponse[]
 
   console.log('[Resource Service] Found', data.length, 'resources in database');
 
-  // Extract keywords from query
+  // Extract keywords from query (only words with 3+ chars)
   const keywords = query
     .toLowerCase()
     .split(/\s+/)
@@ -29,7 +32,17 @@ export const searchResources = async (query: string): Promise<ResourceResponse[]
 
   console.log('[Resource Service] Keywords:', keywords);
 
-  // Filter resources that match any keyword in title, description, or tags
+  // If no valid keywords, return all resources
+  if (keywords.length === 0) {
+    return (data as Resource[]).slice(0, 5).map((resource) => ({
+      id: resource.id,
+      title: resource.title,
+      type: resource.type,
+      url: resource.public_url,
+    }));
+  }
+
+  // Filter resources that match any keyword
   const matchingResources = (data as Resource[]).filter((resource) => {
     const titleMatch = keywords.some((kw) =>
       resource.title.toLowerCase().includes(kw)
@@ -46,20 +59,19 @@ export const searchResources = async (query: string): Promise<ResourceResponse[]
 
   console.log('[Resource Service] Matching resources:', matchingResources.length);
 
-  // Transform to response format
-  const result = matchingResources.slice(0, 5).map((resource) => ({
+  return matchingResources.slice(0, 5).map((resource) => ({
     id: resource.id,
     title: resource.title,
     type: resource.type,
     url: resource.public_url,
   }));
-
-  return result;
 };
 
-// Get all resources (fallback when no matching resources found)
+// Get all resources (fallback)
 export const getAllResources = async (): Promise<ResourceResponse[]> => {
   console.log('[Resource Service] Getting all resources (fallback)');
+
+  const supabase = getServiceClient();
 
   const { data, error } = await supabase
     .from('resources')
@@ -71,7 +83,7 @@ export const getAllResources = async (): Promise<ResourceResponse[]> => {
     return [];
   }
 
-  console.log('[Resource Service] Fallback found', data?.length || 0, 'resources');
+  console.log('[Resource Service] Found', data?.length || 0, 'resources');
 
   if (!data) return [];
 
